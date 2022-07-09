@@ -20,9 +20,13 @@
 #define MAX_EVENT_NUMBER 10000  //监听的最大的事件数量
 #define TIMESLOT 5      // 每5秒检测一次非活跃连接
 
+
+
+
 static int pipefd[2];
 static sort_timer_lst timer_lst;
 static int epollfd = 0;
+int m_close_log = 0;  // 是否关闭日志系统
 
 extern void addfd(int epollfd,int fd, bool one_shot);
 extern void removefd( int epollfd, int fd );
@@ -79,6 +83,10 @@ int main(int argc, char* argv[]){
     } catch(...){
         return 1;
     }
+
+
+    // 日志系统，初始化
+    if(0==m_close_log) Log::get_instance()->init("ServerLog", 0, 2000, 800000, 800);
 
     http_conn* users = new http_conn[MAX_FD];
 
@@ -159,6 +167,7 @@ int main(int argc, char* argv[]){
                     continue;
                 }
                 printf("Get one connect.... connfd = %d\n",connfd);
+                LOG_INFO("get one connect connfd = %d",connfd);
                 users[connfd].init(connfd, client_addr);
 
                 // 初始化user_timer的信息
@@ -181,7 +190,7 @@ int main(int argc, char* argv[]){
                 users[sockfd].close_conn();
                 cb_func( &users_timer[sockfd] );
                 timer_lst.del_timer( timer );
-
+                LOG_INFO("close one connect = %d",sockfd);
 
             } else if(( sockfd == pipefd[0] ) && ( events[i].events & EPOLLIN )){
 
@@ -200,6 +209,7 @@ int main(int argc, char* argv[]){
                                 // timeout标记时间已到，但不立即处理
                                 // 因为定时任务的优先级不是很高，其他IO操作更重要
                                 timeout = true;
+                                LOG_INFO("time tick");
                                 break;
                             }
                             case SIGTERM:
