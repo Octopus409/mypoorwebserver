@@ -1,5 +1,8 @@
 #include "http_conn.h"
 
+// 日志系统控制
+extern int m_close_log;
+
 // 定义HTTP响应的一些状态信息
 const char* ok_200_title = "OK";
 const char* error_400_title = "Bad Request";
@@ -142,6 +145,8 @@ http_conn::HTTP_CODE http_conn::process_read(){
         //下一个句子的头部。
         m_start_line = m_checked_idx;
         //printf("got 1 http line : %s\n", text);
+
+        LOG_INFO("%s",text);
 
         switch(m_check_state){
             case CHECK_STATE_REQUESTLINE:
