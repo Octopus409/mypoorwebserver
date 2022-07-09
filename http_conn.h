@@ -20,6 +20,7 @@
 #include <errno.h>
 #include "locker.h"
 #include <sys/uio.h>
+#include "log/log.h"
 
 class http_conn
 {
